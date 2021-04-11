@@ -1,0 +1,16 @@
+[package]
+authors = ["jleahred <jleahred@gmail.com>"]
+description = "Dynamic parser and replacer. You can define rules at run time. It's possible to use peg format"
+edition = "2018"
+homepage = "https://github.com/jleahred/yepp"
+keywords = ["parsing", "parser", "peg", "compiler"]
+license = "GPL-3.0"
+name = "yepp"
+readme = "README.md"
+repository = "https://github.com/jleahred/yepp"
+version = "0.1.0"
+
+[dependencies]
+#idata = {git = "https://github.com/jleahred/idata" }
+idata = "0.1.2"
+im = "14.3.0"
