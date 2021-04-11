@@ -1,6 +1,6 @@
 #![warn(missing_docs)]
 
-pub(crate) mod peg2code;
+pub(crate) mod proc_peg_files;
 
 use crate::parser::{
     atom,

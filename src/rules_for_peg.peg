@@ -1,16 +1,3 @@
-//! Here it's the peg grammar to parse the peg input  ;-P
-//!
-//! There is also a function to print the rust source code
-//!
-//! It's used in order to develop myself
-//!
-//! A parser for the parser (you know)
-//!
-//! To generate the code to parse the peg, you just have to run...
-//!
-
-pub(crate) fn text_peg2code() -> &'static str {
-    r#"
     /*      A peg grammar to parse peg grammars
      *
      */
@@ -159,5 +146,3 @@ pub(crate) fn text_peg2code() -> &'static str {
                               )
                         ")"                                     -> $(:none)
 
-    "#
-}

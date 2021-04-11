@@ -21,7 +21,7 @@
 //!     )
 //!     .gen_rules()?
 //!     .parse("aaacbbabdef")?
-//!     .replace()?
+//!     .replace(None)?
 //!     //  ...
 //!     ;
 //!
@@ -114,22 +114,10 @@ impl crate::parser::expression::SetOfRules {
 /// }
 /// ```
 
-pub fn print_rules2parse_peg2() {
-    use crate::ir::IR;
-
-    let irtxt = crate::rules_for_peg::rules()
-        .parse(gcode::peg2code::text_peg2code())
-        .unwrap()
-        .replace(None)
-        .unwrap();
-    let ir = IR::new(&irtxt.str());
-
-    let rules = ir.get_rules().unwrap();
-
-    let r = crate::gcode::rust_from_rules(&rules);
-
-    let r = r;
-    println!("{}", r);
+///  given a file or dir, process the .peg files
+///  generating rust code
+pub fn process_peg_files(dir: &std::path::Path) {
+    gcode::proc_peg_files::run(dir)
 }
 
 /// Type to user defined funtions callbacks
