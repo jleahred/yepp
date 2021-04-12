@@ -11,7 +11,7 @@ pub(crate) fn run(dir: &Path) {
         if path.is_dir() {
             run(&path);
         } else if path.is_file() && path.extension() == Some(OsStr::new("peg")) {
-            print!("running file!!!: {:?}\n", path);
+            println!("running file!!!: {:?}", path);
             let txt_peg = fs::read_to_string(&path).expect("failed to read input");
 
             let rust_rules = get_rust_rules2parse_peg2(&txt_peg);
@@ -40,13 +40,8 @@ pub(crate) fn rules() -> parser::expression::SetOfRules {{
                 ),
             )
             .expect("failed to write result");
-            // fs::write(&gen_file, rust_rules).expect("failed to write result")
 
-            // let grammar = lr1::parse(&src);
-            // let mut gen = Generator::new();
-            // let res = gen.build(&grammar);
-            // let new_path = path.with_extension("rs");
-            // fs::write(new_path, res).expect("failed to write result")
+            println!("FINISHED!!!");
         }
     }
 }

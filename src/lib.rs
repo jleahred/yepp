@@ -102,18 +102,6 @@ impl crate::parser::expression::SetOfRules {
     }
 }
 
-/// A parser for the parser.
-///
-/// It will take the peg grammar to parse peg grammars
-/// and will generate the rust code as a set of rules
-/// ```rust
-/// extern crate yepp;
-///
-/// fn main() {
-///     yepp::print_rules2parse_peg2();
-/// }
-/// ```
-
 ///  given a file or dir, process the .peg files
 ///  generating rust code
 pub fn process_peg_files(dir: &std::path::Path) {

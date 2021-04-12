@@ -17,32 +17,43 @@
                         ( _  '/'  _  or )?              -> $(or)
 
     and             =   error
-                    /   (andline  transf2   and:(
-                            _                ->$(:none)
-                            !(rule_name   _  ('=' / '{'))   and )?)             -> TRANSF2$(:endl)$(transf2)EOTRANSF2$(:endl)AND$(:endl)$(andline)CLOSE_MEXPR$(:endl)$(and)
-                    /   andline     (  
-                                       ( ' ' / comment )*   eol+   _            -> $(:none)
-                                       !( rule_name _   ('=' / '{') )   and 
-                                    )?
+                    /   andline_transf2
+                    /   just_andline
+
+    andline_transf2 =   (
+                            andline  transf2    
+                                    and:(
+                                            _                   ->$(:none)
+                                            no_rule_name
+                                            and
+                                        )?
+                        )                                       -> TRANSF2$(:endl)$(transf2)EOTRANSF2$(:endl)AND$(:endl)$(andline)CLOSE_MEXPR$(:endl)$(and)
+
+    just_andline    =       andline     (
+                                            _eol   eol*   _     -> $(:none)
+                                            no_rule_name
+                                            and
+                                        )?
+
+    no_rule_name    =   !( rule_name _   '=' )
 
     error           =   'error' _  '('  _  literal  _  ')'      -> ERROR$(:endl)$(literal)$(:endl)
 
 
-    andline         =   andchunk  (     
+    andline         =   andchunk  (
                                         ' '+  ->$(:none)
                                         ( error / andchunk )
                                   )*
 
     andchunk        =   name   e:rep_or_unary                 -> NAMED$(:endl)$(name)$(:endl)$(e)
                     /            rep_or_unary
-                        
+
 
     //  this is the and separator
     _1              =   ' ' / eol                   -> $(:none)
 
     //  repetitions or unary operator
     rep_or_unary    =   atom_or_par  rep_symbol?    -> $(?rep_symbol)$(atom_or_par)
-                    //   atom_or_par                -> $(atom_or_par)
                     /   '!' atom_or_par             -> NEGATE$(:endl)$(atom_or_par)
                     /   '&' atom_or_par             -> PEEK$(:endl)$(atom_or_par)
 
@@ -123,11 +134,11 @@
                         transf_rule         -> $(transf_rule)
                         &eol
 
-    transf_rule     =   ( 
-                           //  remove traililng spaces on transf rules
+    transf_rule     =   (
+                           //  remove trailing spaces on transf rules
                            " "+  &eol                            -> $(:none)
-                        /  tmpl_text  
-                        /  tmpl_rule 
+                        /  tmpl_text
+                        /  tmpl_rule
                         )+
 
     tmpl_text       =   t:( (!("$(" / eol) .)+ )                -> TEXT$(:endl)$(t)$(:endl)

@@ -1,7 +1,6 @@
 extern crate yepp;
 
 fn main() -> Result<(), yepp::Error> {
-    // yepp::print_rules2parse_peg2();
     yepp::process_peg_files(&std::path::PathBuf::from("./src"));
     main2()
 }
