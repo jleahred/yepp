@@ -69,7 +69,7 @@ pub struct Error {
     // /// Error description parsing
     // pub(crate) descr: Vec<String>,
     /// Alternative errors
-    pub(crate) alternatives: Vec<ErrorAlternatives>,
+    pub(crate) alternatives: ErrorAlternatives,
     /// Line content before where error was produced
     pub(crate) line_before: String,
     /// Line content after where error was produced
@@ -85,14 +85,14 @@ pub struct Error {
 
 #[derive(Debug, Clone)]
 pub struct ErrorAlternatives {
-    pub(crate) context: Vec<String>,
+    pub(crate) context: Option<String>,
     pub(crate) expected: Vec<String>,
 }
 
 impl ErrorAlternatives {
     pub(crate) fn from_string(s: &str) -> Self {
         ErrorAlternatives {
-            context: vec![],
+            context: None,
             expected: vec![s.to_owned()],
         }
     }
@@ -179,7 +179,7 @@ impl Error {
     pub(crate) fn from_status_simple(status: &Status, descr: &str, prior: ErrPriority) -> Self {
         Error {
             pos: status.pos.clone(),
-            alternatives: vec![ErrorAlternatives::from_string(descr)],
+            alternatives: ErrorAlternatives::from_string(descr),
             line_before: status.text2parse[status.pos.start_line..status.pos.n].to_string(),
             line_after: status
                 .it_parsing
@@ -198,7 +198,7 @@ impl Error {
     ) -> Self {
         Error {
             pos: status.pos.clone(),
-            alternatives: vec![alternatives.clone()],
+            alternatives: alternatives.clone(),
             line_before: status.text2parse[status.pos.start_line..status.pos.n].to_string(),
             line_after: status
                 .it_parsing
@@ -221,8 +221,10 @@ impl Error {
         }
     }
 
-    pub(crate) fn merge_alternatives(mut self, alternatives: &Vec<ErrorAlternatives>) -> Self {
-        self.alternatives.append(&mut alternatives.clone());
+    pub(crate) fn merge_alternatives(mut self, alternatives: &ErrorAlternatives) -> Self {
+        self.alternatives
+            .expected
+            .append(&mut alternatives.expected.clone());
         self
     }
 
