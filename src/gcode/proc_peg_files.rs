@@ -4,6 +4,14 @@ use std::fs;
 use std::path::Path;
 
 pub(crate) fn run(dir: &Path) {
+    _run(dir, false)
+}
+
+pub(crate) fn run_force(dir: &Path) {
+    _run(dir, true)
+}
+
+pub(crate) fn _run(dir: &Path, force: bool) {
     print!("running: {:?}\n", dir);
     for entry in fs::read_dir(dir).expect("cannot read directory") {
         let entry = entry.expect("cannot read file");
@@ -14,7 +22,7 @@ pub(crate) fn run(dir: &Path) {
             let orig_file = &path;
             let dest_file = &path.with_extension("rs");
 
-            if require_generation(orig_file, dest_file) {
+            if force || require_generation(orig_file, dest_file) {
                 gen_file(&orig_file, &dest_file);
             }
         }
@@ -53,6 +61,7 @@ fn require_generation(origin: &Path, destiny: &Path) -> bool {
 }
 
 fn gen_file(origin: &Path, destiny: &Path) {
+    println!("init generate file {:?}", origin);
     let txt_peg = fs::read_to_string(&origin).expect(&format!("failed to read input {:?}", origin));
 
     let rust_rules = get_rust_rules2parse_peg2(&txt_peg);
@@ -80,5 +89,5 @@ rules!(
     )
     .expect("failed to write result");
 
-    println!("Generated file!!!");
+    println!("end generated {:?}", origin);
 }

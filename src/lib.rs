@@ -110,6 +110,12 @@ pub fn process_peg_files(dir: &std::path::Path) {
     gcode::proc_peg_files::run(dir)
 }
 
+/// process and generate source code for file
+/// even if it hasn't been updated
+pub fn process_peg_files_force(dir: &std::path::Path) {
+    gcode::proc_peg_files::run_force(dir)
+}
+
 /// Type to user defined funtions callbacks
 pub struct FnCallBack(pub fn(&str) -> Option<String>);
 

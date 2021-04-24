@@ -19,7 +19,7 @@ fn main() -> Result<(), yepp::Error> {
     // println!("{}", result.str());
     // Ok(())
 
-    yepp::process_peg_files(&std::path::PathBuf::from("./src"));
+    yepp::process_peg_files_force(&std::path::PathBuf::from("./src"));
     main2()
 }
 
@@ -40,7 +40,7 @@ fn main2() -> Result<(), yepp::Error> {
         unary_expr  =     _  '-'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
                     /     _  '+'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
                     /     _  ( '+' / '-' )  _                   error("waitting open parenth or number after unary operator")
-
+                    .desc   Unary expression  desc.
 
 
         term    =   factor  (

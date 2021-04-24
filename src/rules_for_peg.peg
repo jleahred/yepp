@@ -7,9 +7,10 @@
 
     symbol          =   [_a-zA-Z0-9] [_'"a-zA-Z0-9]*
 
-    rule            =   _  rule_name  _  '='  _  expr   _eol _       -> RULE$(:endl)$(rule_name)$(:endl)$(expr)
+    rule            =   _  rule_name  _  '='  _  expr  _eol  _  rule_descr?   _    -> RULE$(:endl)$(rule_name)$(:endl)$(expr)
 
     rule_name       =   symbol
+    rule_descr      =   _  '.desc'  _   desc:!('desc.' .)   _  'desc.'  _          -> RDESC$(:endl)$(desc)
 
     expr            =   or                              -> OR$(:endl)$(or)CLOSE_MEXPR$(:endl)
 
@@ -24,14 +25,15 @@
                             andline  transf2    
                                     and:(
                                             _                   ->$(:none)
-                                            no_rule_name
+                                            (no_rule_name    !rule_descr)
                                             and
                                         )?
                         )                                       -> TRANSF2$(:endl)$(transf2)EOTRANSF2$(:endl)AND$(:endl)$(andline)CLOSE_MEXPR$(:endl)$(and)
 
     just_andline    =       andline     (
                                             _eol   eol*   _     -> $(:none)
-                                            no_rule_name
+                                            //  next is to detect end of rule
+                                            (no_rule_name    !rule_descr)
                                             and
                                         )?
 
