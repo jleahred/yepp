@@ -1,8 +1,25 @@
 extern crate yepp;
 
 fn main() -> Result<(), yepp::Error> {
-    yepp::process_peg_files(&std::path::PathBuf::from("./src"));
-    main2()
+    let result = yepp::Peg::new(
+        r#"
+        main    =   "a"* ("c" / "D")
+                /   "b"
+                /   "B"
+        "#,
+    )
+    .gen_rules()?
+    .parse("aaaay")?
+    .replace(None)?
+    //  ...
+    ;
+
+    //     println!("{:#?}", result);
+    println!("{}", result.str());
+    Ok(())
+
+    // yepp::process_peg_files(&std::path::PathBuf::from("./src"));
+    // main2()
 }
 
 //  -----------------------------------------------------------------------------------

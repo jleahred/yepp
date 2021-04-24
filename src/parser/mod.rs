@@ -66,8 +66,10 @@ pub(crate) enum ErrPriority {
 pub struct Error {
     /// Possition achive parsing
     pub(crate) pos: Possition,
-    /// Error description parsing
-    pub(crate) descr: String,
+    // /// Error description parsing
+    // pub(crate) descr: Vec<String>,
+    /// Alternative errors
+    pub(crate) alternatives: Vec<ErrorAlternatives>,
     /// Line content before where error was produced
     pub(crate) line_before: String,
     /// Line content after where error was produced
@@ -79,6 +81,21 @@ pub struct Error {
     pub(crate) parsing_rules: Vec<String>,
     /// error priority
     pub(crate) priority: ErrPriority,
+}
+
+#[derive(Debug, Clone)]
+pub struct ErrorAlternatives {
+    pub(crate) context: Vec<String>,
+    pub(crate) expected: Vec<String>,
+}
+
+impl ErrorAlternatives {
+    pub(crate) fn from_string(s: &str) -> Self {
+        ErrorAlternatives {
+            context: vec![],
+            expected: vec![s.to_owned()],
+        }
+    }
 }
 
 //-----------------------------------------------------------------------
@@ -159,10 +176,29 @@ mod test;
 //  I N T E R N A L
 //-----------------------------------------------------------------------
 impl Error {
-    pub(crate) fn from_status(status: &Status, descr: &str, prior: ErrPriority) -> Self {
+    pub(crate) fn from_status_simple(status: &Status, descr: &str, prior: ErrPriority) -> Self {
         Error {
             pos: status.pos.clone(),
-            descr: descr.to_owned(),
+            alternatives: vec![ErrorAlternatives::from_string(descr)],
+            line_before: status.text2parse[status.pos.start_line..status.pos.n].to_string(),
+            line_after: status
+                .it_parsing
+                .clone()
+                .take_while(|&ch| ch != '\n' && ch != '\r')
+                .collect(),
+            // errors: vec![],
+            parsing_rules: status.walking_rules.clone(),
+            priority: prior,
+        }
+    }
+    pub(crate) fn from_status(
+        status: &Status,
+        alternatives: &ErrorAlternatives,
+        prior: ErrPriority,
+    ) -> Self {
+        Error {
+            pos: status.pos.clone(),
+            alternatives: vec![alternatives.clone()],
             line_before: status.text2parse[status.pos.start_line..status.pos.n].to_string(),
             line_after: status
                 .it_parsing
@@ -175,8 +211,27 @@ impl Error {
         }
     }
 
-    pub(crate) fn from_status_normal(status: &Status, descr: &str) -> Self {
-        Self::from_status(status, descr, ErrPriority::Normal)
+    pub(crate) fn merge(&self, err: &Error) -> Self {
+        use std::cmp::Ordering;
+
+        match self.pos.n.cmp(&err.pos.n) {
+            Ordering::Greater => self.clone(),
+            Ordering::Less => err.clone(),
+            Ordering::Equal => self.clone().merge_alternatives(&err.alternatives),
+        }
+    }
+
+    pub(crate) fn merge_alternatives(mut self, alternatives: &Vec<ErrorAlternatives>) -> Self {
+        self.alternatives.append(&mut alternatives.clone());
+        self
+    }
+
+    pub(crate) fn from_status_normal_simple(status: &Status, descr: &str) -> Self {
+        Self::from_status(
+            status,
+            &ErrorAlternatives::from_string(descr),
+            ErrPriority::Normal,
+        )
     }
 
     // pub(crate) fn from_st_errs(status: &Status, descr: &str, errors: Vec<Error>) -> Self {

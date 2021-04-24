@@ -42,6 +42,8 @@ extern crate im;
 
 use std::result;
 
+use parser::ErrorAlternatives;
+
 #[macro_use]
 pub(crate) mod macros;
 pub(crate) mod ast;
@@ -150,7 +152,7 @@ fn parse_with_debug(
     match (st.pos.n == s.len(), st.potential_error.clone()) {
         (true, _) => Ok(ast),
         (false, Some(e)) => Err(e),
-        (false, None) => Err(parser::Error::from_status_normal(
+        (false, None) => Err(parser::Error::from_status_normal_simple(
             &st,
             "not consumed full input",
         )),

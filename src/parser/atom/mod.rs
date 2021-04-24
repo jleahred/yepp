@@ -4,6 +4,8 @@ use crate::ast;
 use crate::parser::{ErrPriority, Error, Result, Status};
 use std::result;
 
+use super::ErrorAlternatives;
+
 #[cfg(test)]
 mod test;
 
@@ -91,19 +93,23 @@ macro_rules! ok {
 fn parse_literal<'a>(mut status: Status<'a>, literal: &'a str) -> Result<'a> {
     for ch in literal.chars() {
         status = parse_char(status, ch)
-            .map_err(|st| Error::from_status_normal(&st, &format!("unexpected string")))?;
+            .map_err(|st| Error::from_status_normal_simple(&st, &format!("{}", literal)))?;
     }
     ok!(status, literal)
 }
 
 fn parse_error<'a>(status: &Status<'a>, error: &'a str) -> Result<'a> {
-    Err(Error::from_status(&status, &error, ErrPriority::Critical))
+    Err(Error::from_status(
+        &status,
+        &ErrorAlternatives::from_string(&error),
+        ErrPriority::Critical,
+    ))
 }
 
 fn parse_dot(status: Status) -> Result {
     let (status, ch) = status
         .get_char()
-        .map_err(|st| Error::from_status_normal(&st, "dot"))?;
+        .map_err(|st| Error::from_status_normal_simple(&st, "dot"))?;
 
     ok!(status, ch.to_string())
 }
@@ -131,8 +137,8 @@ fn parse_match<'a>(status: Status<'a>, match_rules: &MatchRules) -> Result<'a> {
                 Err(st)
             }
         })
-        .map_err(|st| {
-            Error::from_status_normal(
+        .map_err(|st| -> Error {
+            Error::from_status_normal_simple(
                 &st,
                 &format!("match. expected {} {:?}", match_rules.0, match_rules.1),
             )
@@ -141,7 +147,7 @@ fn parse_match<'a>(status: Status<'a>, match_rules: &MatchRules) -> Result<'a> {
 
 fn parse_eof(status: Status) -> Result {
     match status.get_char() {
-        Ok((st, _ch)) => Err(Error::from_status_normal(&st, "expected EOF")),
+        Ok((st, _ch)) => Err(Error::from_status_normal_simple(&st, "expected EOF")),
         Err(st) => ok!(st, "EOF"),
     }
 }

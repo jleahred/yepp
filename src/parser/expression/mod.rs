@@ -192,13 +192,13 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
 
     let rules = &status.rules.0;
     let expression = rules.get(rule_name).ok_or_else(|| {
-        Error::from_status(
+        Error::from_status_simple(
             &status,
             &format!("Missing rule: {}", rule_name),
             ErrPriority::Critical,
         )
     })?;
-    let (st, nodes) = parse_expr(status, &expression)?;
+    let (st, nodes) = parse_expr(status, &expression).or_else(|err| Err(err))?;
 
     // let elapsed = start.elapsed();
     // println!(
@@ -276,11 +276,10 @@ fn parse_and<'a>(status: Status<'a>, multi_expr: &'a MultiExpr) -> ResultExpr<'a
 
 //-----------------------------------------------------------------------
 fn parse_or<'a>(status: &Status<'a>, multi_expr: &'a MultiExpr) -> ResultExpr<'a> {
-    let deep_err = |oe1: Option<Error>, e2: Error| match oe1 {
-        Some(e1) => match (e1.priority > e2.priority, e1.pos.n > e2.pos.n) {
-            (true, _) => Some(e1),
-            (false, true) => Some(e1),
-            (false, false) => Some(e2),
+    let merge_errors = |oe1: Option<Error>, e2: Error| match oe1 {
+        Some(e1) => match e1.priority > e2.priority {
+            true => Some(e1),
+            false => Some(e1.merge(&e2)),
         },
         None => Some(e2),
     };
@@ -291,7 +290,7 @@ fn parse_or<'a>(status: &Status<'a>, multi_expr: &'a MultiExpr) -> ResultExpr<'a
         if acc.1.is_empty() {
             TailCall::Return(Err(match acc.2 {
                 Some(err) => err,
-                _ => Error::from_status_normal(
+                _ => Error::from_status_normal_simple(
                     &status,
                     "LOGIC ERROR!!! checked all options in or with ¿NO? errors",
                 ),
@@ -304,7 +303,7 @@ fn parse_or<'a>(status: &Status<'a>, multi_expr: &'a MultiExpr) -> ResultExpr<'a
                     if e.priority == ErrPriority::Critical {
                         TailCall::Return(Err(e))
                     } else {
-                        TailCall::Call((acc.0, &acc.1[1..], deep_err(acc.2, e)))
+                        TailCall::Call((acc.0, &acc.1[1..], merge_errors(acc.2, e)))
                     }
                 }
             }
@@ -315,7 +314,7 @@ fn parse_or<'a>(status: &Status<'a>, multi_expr: &'a MultiExpr) -> ResultExpr<'a
 //-----------------------------------------------------------------------
 fn parse_not<'a>(status: Status<'a>, expression: &'a Expression) -> ResultExpr<'a> {
     match parse_expr(status.clone(), expression) {
-        Ok(_) => Err(Error::from_status_normal(&status, "not")),
+        Ok(_) => Err(Error::from_status_normal_simple(&status, "not")),
         Err(_) => Ok((status, vec![])),
     }
 }
@@ -323,7 +322,7 @@ fn parse_not<'a>(status: Status<'a>, expression: &'a Expression) -> ResultExpr<'
 fn parse_peek<'a>(status: Status<'a>, expression: &'a Expression) -> ResultExpr<'a> {
     match parse_expr(status.clone(), expression) {
         Ok(_) => Ok((status, vec![])),
-        Err(_) => Err(Error::from_status_normal(&status, "not")),
+        Err(_) => Err(Error::from_status_normal_simple(&status, "not")),
     }
 }
 
