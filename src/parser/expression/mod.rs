@@ -198,7 +198,8 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
             ErrPriority::Critical,
         )
     })?;
-    let (st, nodes) = parse_expr(status, &expression).or_else(|err| Err(err))?;
+    let (st, nodes) =
+        parse_expr(status, &expression).or_else(|err| Err(err.with_context(rule_name)))?;
 
     // let elapsed = start.elapsed();
     // println!(

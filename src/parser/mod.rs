@@ -176,6 +176,12 @@ mod test;
 //  I N T E R N A L
 //-----------------------------------------------------------------------
 impl Error {
+    pub(crate) fn with_context(mut self, context: &str) -> Self {
+        if self.alternatives.context.is_none() {
+            self.alternatives.context = Some(context.to_owned());
+        }
+        self
+    }
     pub(crate) fn from_status_simple(status: &Status, descr: &str, prior: ErrPriority) -> Self {
         Error {
             pos: status.pos.clone(),

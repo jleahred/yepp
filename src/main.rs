@@ -3,7 +3,8 @@ extern crate yepp;
 fn main() -> Result<(), yepp::Error> {
     let result = yepp::Peg::new(
         r#"
-        main    =   "a"* ("c" / "D")
+        main    =   mm
+        mm      =   "a"* ("c" / "D")
                 /   "b"
                 /   "B"
         "#,

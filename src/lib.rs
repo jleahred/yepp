@@ -42,7 +42,7 @@ extern crate im;
 
 use std::result;
 
-use parser::ErrorAlternatives;
+// use parser::ErrorAlternatives;
 
 #[macro_use]
 pub(crate) mod macros;
