@@ -11,37 +11,12 @@ pub(crate) fn run(dir: &Path) {
         if path.is_dir() {
             run(&path);
         } else if path.is_file() && path.extension() == Some(OsStr::new("peg")) {
-            println!("running file!!!: {:?}", path);
-            let txt_peg = fs::read_to_string(&path).expect("failed to read input");
+            let orig_file = &path;
+            let dest_file = &path.with_extension("rs");
 
-            let rust_rules = get_rust_rules2parse_peg2(&txt_peg);
-
-            let gen_file = path.with_extension("rs");
-
-            let _ = fs::rename(&gen_file, path.with_extension("rs.backup"));
-
-            fs::write(
-                &gen_file,
-                format!(
-                    "
-#![warn(missing_docs)]
-//! Module to deal with rules (aka SetOfRules)
-//!
-
-use crate::parser;
-
-pub(crate) fn rules() -> parser::expression::SetOfRules {{
-    rules!(
-        {}
-    )
-}}
-",
-                    rust_rules
-                ),
-            )
-            .expect("failed to write result");
-
-            println!("FINISHED!!!");
+            if require_generation(orig_file, dest_file) {
+                gen_file(&orig_file, &dest_file);
+            }
         }
     }
 }
@@ -59,4 +34,51 @@ fn get_rust_rules2parse_peg2(txt_peg: &str) -> String {
     let rules = ir.get_rules().unwrap();
 
     crate::gcode::rust_from_rules(&rules)
+}
+
+fn require_generation(origin: &Path, destiny: &Path) -> bool {
+    let created_origin = fs::metadata(origin)
+        .expect(&format!("error getting metadata from file {:?}", origin))
+        .modified()
+        .expect(&format!("cannot read date from file {:?}", origin));
+    let meta_dest = fs::metadata(destiny);
+
+    if let Ok(md) = meta_dest {
+        created_origin
+            > md.modified()
+                .expect(&format!("cannot read date from file {:?}", md))
+    } else {
+        true
+    }
+}
+
+fn gen_file(origin: &Path, destiny: &Path) {
+    let txt_peg = fs::read_to_string(&origin).expect(&format!("failed to read input {:?}", origin));
+
+    let rust_rules = get_rust_rules2parse_peg2(&txt_peg);
+
+    let _ = fs::rename(&destiny, destiny.with_extension("rs.backup"));
+
+    fs::write(
+        &destiny,
+        format!(
+            "
+#![warn(missing_docs)]
+//! Module to deal with rules (aka SetOfRules)
+//!
+
+use crate::parser;
+
+pub(crate) fn rules() -> parser::expression::SetOfRules {{
+rules!(
+{}
+)
+}}
+",
+            rust_rules
+        ),
+    )
+    .expect("failed to write result");
+
+    println!("Generated file!!!");
 }
