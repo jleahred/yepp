@@ -109,7 +109,7 @@ fn parse_error<'a>(status: &Status<'a>, error: &'a str) -> Result<'a> {
 fn parse_dot(status: Status) -> Result {
     let (status, ch) = status
         .get_char()
-        .map_err(|st| Error::from_status_normal_simple(&st, "dot"))?;
+        .map_err(|st| Error::from_status_normal_simple(&st, "anything"))?;
 
     ok!(status, ch.to_string())
 }
@@ -140,7 +140,7 @@ fn parse_match<'a>(status: Status<'a>, match_rules: &MatchRules) -> Result<'a> {
         .map_err(|st| -> Error {
             Error::from_status_normal_simple(
                 &st,
-                &format!("match. expected {} {:?}", match_rules.0, match_rules.1),
+                &format!("match {} {:?}", match_rules.0, match_rules.1),
             )
         })
 }
