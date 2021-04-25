@@ -294,12 +294,22 @@ fn get_lit(ir: IR) -> Result<(IR, Expression), Error> {
 fn get_rule(ir: IR) -> Result<(IR, SetOfRules), Error> {
     //  RULE
     //  name
+    //  DESCR
+    //  description
     //  ATOM
     //  LIT
     //  literal
     let ir = ir.consume("RULE")?;
 
     let (ir, name) = ir.get()?;
+
+    let ir = ir.consume("DESCR")?;
+
+    let (ir, descr) = ir.get()?;
+    let descr = Command(descr.0.trim().to_owned());
+    if descr.0 != "" {
+        dbg!(descr);
+    }
 
     let (ir, expr) = get_expr(ir)?;
 

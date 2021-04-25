@@ -7,10 +7,10 @@
 
     symbol          =   [_a-zA-Z0-9] [_'"a-zA-Z0-9]*
 
-    rule            =   _  rule_name  _  '='  _  expr  _eol  _  rule_descr?   _    -> RULE$(:endl)$(rule_name)$(:endl)$(expr)
+    rule            =   _  rule_name  _  '='  _  expr  _eol  _  desc:rule_descr?        -> RULE$(:endl)$(rule_name)$(:endl)DESCR$(:endl)$(desc)$(:endl)$(expr)
 
     rule_name       =   symbol
-    rule_descr      =   _  '.desc'  _   desc:!('desc.' .)   _  'desc.'  _          -> RDESC$(:endl)$(desc)
+    rule_descr      =   _  '.desc'    desc:(!'desc.' .)*   'desc.'  _                   -> $(desc)
 
     expr            =   or                              -> OR$(:endl)$(or)CLOSE_MEXPR$(:endl)
 

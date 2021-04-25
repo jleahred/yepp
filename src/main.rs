@@ -31,6 +31,7 @@ fn main2() -> Result<(), yepp::Error> {
         r#"
         main    =   expr
 
+
         expr    =   (  term   /  unary_expr  )
                             (
                                 _  add_op   _  term             ->$(term)$(add_op)
@@ -40,8 +41,7 @@ fn main2() -> Result<(), yepp::Error> {
         unary_expr  =     _  '-'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
                     /     _  '+'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
                     /     _  ( '+' / '-' )  _                   error("waitting open parenth or number after unary operator")
-                    .desc   Unary expression  desc.
-
+                    .desc  Unary expression  desc.
 
         term    =   factor  (
                                 _  mult_op  _  factor           ->$(factor)$(mult_op)
