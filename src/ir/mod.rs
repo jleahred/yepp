@@ -6,7 +6,7 @@ pub struct Error(pub(crate) String);
 
 #[derive(Debug)]
 /// IR error information
-pub(crate) struct IR {
+pub(crate) struct Ir {
     pos: usize,
     commands: Vec<Command>,
 }
@@ -14,7 +14,7 @@ pub(crate) struct IR {
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Command(String);
 
-impl IR {
+impl Ir {
     pub(crate) fn new(txt: &str) -> Self {
         Self {
             pos: 0,
@@ -25,7 +25,7 @@ impl IR {
         }
     }
 
-    fn get(mut self) -> Result<(IR, Command), Error> {
+    fn get(mut self) -> Result<(Ir, Command), Error> {
         if self.pos >= self.commands.len() {
             Err(Error("next over finished program".to_string()))
         } else {
@@ -36,10 +36,10 @@ impl IR {
     }
 
     fn peek(&self) -> Option<Command> {
-        self.commands.get(self.pos).map(|c| c.clone())
+        self.commands.get(self.pos).cloned()
     }
 
-    fn consume(self, val: &str) -> Result<IR, Error> {
+    fn consume(self, val: &str) -> Result<Ir, Error> {
         let (ir, cmd) = self.get()?;
         if cmd.0 == val {
             Ok(ir)

@@ -1,19 +1,19 @@
-use crate::ir::{Command, Error, IR};
+use crate::ir::{Command, Error, Ir};
 use crate::parser::expression::{
     Expression, MetaExpr, MultiExpr, NamedExpr, RepInfo, ReplItem, ReplTemplate, SetOfRules,
     Transf2Expr,
 };
 use idata::cont::IVec;
 
-impl IR {
-    /// get rules from an IR code
+impl Ir {
+    /// get rules from an Ir code
     pub(crate) fn get_rules(self) -> Result<SetOfRules, Error> {
         let (_ir, rules) = get_rule_rec(self, SetOfRules::empty())?;
         Ok(rules)
     }
 }
 
-fn get_rule_rec(ir: IR, rules: SetOfRules) -> Result<(IR, SetOfRules), Error> {
+fn get_rule_rec(ir: Ir, rules: SetOfRules) -> Result<(Ir, SetOfRules), Error> {
     if ir.peek() == Some(Command("EOP".to_string())) {
         Ok((ir, rules))
     } else {
@@ -23,7 +23,7 @@ fn get_rule_rec(ir: IR, rules: SetOfRules) -> Result<(IR, SetOfRules), Error> {
     }
 }
 
-fn get_expr(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_expr(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  ATOM
     //  LIT
     //  literal
@@ -42,14 +42,14 @@ fn get_expr(ir: IR) -> Result<(IR, Expression), Error> {
         "MATCH" => get_match(ir),
         "NAMED" => get_named(ir),
         "NEGATE" => get_negate(ir),
-        "ERROR" => get_error(ir),
+        "EXPECTED" => get_expected(ir),
         "TRANSF2" => get_transf2(ir),
         "PEEK" => check_peek(ir),
         other => Err(Error(format!("unknown cmd reading expression <{}>", other))),
     }
 }
 
-fn get_transf2(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_transf2(ir: Ir) -> Result<(Ir, Expression), Error> {
     let (ir, repl_templ) = get_transf2_items_rec(ir, ReplTemplate::empty())?;
     let (ir, expr) = get_expr(ir)?;
     Ok((
@@ -61,7 +61,7 @@ fn get_transf2(ir: IR) -> Result<(IR, Expression), Error> {
     ))
 }
 
-fn get_transf2_item(ir: IR) -> Result<(IR, ReplItem), Error> {
+fn get_transf2_item(ir: Ir) -> Result<(Ir, ReplItem), Error> {
     //  TEXT
     //  txt
     //
@@ -93,11 +93,11 @@ fn get_transf2_item(ir: IR) -> Result<(IR, ReplItem), Error> {
             ))),
         }
     } else {
-        Err(Error(format!("Missing transf2 item")))
+        Err(Error("Missing transf2 item".to_string()))
     }
 }
 
-fn get_transf2_items_rec(ir: IR, repl_templ: ReplTemplate) -> Result<(IR, ReplTemplate), Error> {
+fn get_transf2_items_rec(ir: Ir, repl_templ: ReplTemplate) -> Result<(Ir, ReplTemplate), Error> {
     if ir.peek() == Some(Command("EOTRANSF2".to_string())) {
         let (ir, _) = ir.get()?;
         Ok((ir, repl_templ))
@@ -107,39 +107,37 @@ fn get_transf2_items_rec(ir: IR, repl_templ: ReplTemplate) -> Result<(IR, ReplTe
     }
 }
 
-fn get_transf2_named(ir: IR) -> Result<(IR, String), Error> {
+fn get_transf2_named(ir: Ir) -> Result<(Ir, String), Error> {
     let (ir, _) = ir.get()?;
     let (ir, named) = ir.get()?;
     Ok((ir, named.0))
 }
 
-fn get_transf2_pos(ir: IR) -> Result<(IR, usize), Error> {
+fn get_transf2_pos(ir: Ir) -> Result<(Ir, usize), Error> {
     let (ir, _) = ir.get()?;
     let (ir, str_pos) = ir.get()?;
-    let pos = str_pos.0.parse().or_else(|e| {
-        Err(Error(format!(
-            "Failed reading pos transformation... {:?} ",
-            e
-        )))
-    })?;
+    let pos = str_pos
+        .0
+        .parse()
+        .map_err(|e| Error(format!("Failed reading pos transformation... {:?} ", e)))?;
     Ok((ir, pos))
 }
 
-fn get_transf2_text(ir: IR) -> Result<(IR, String), Error> {
+fn get_transf2_text(ir: Ir) -> Result<(Ir, String), Error> {
     let (ir, _) = ir.get()?;
     let (ir, txt) = ir.get()?;
     Ok((ir, txt.0))
 }
 
-fn get_error(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_expected(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  <err message>
 
     let (ir, msg) = ir.get()?;
-    let expr = error!(msg.0);
+    let expr = expected!(msg.0);
     Ok((ir, expr))
 }
 
-fn get_negate(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_negate(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  <expr>
 
     let (ir, expr) = get_expr(ir)?;
@@ -147,7 +145,7 @@ fn get_negate(ir: IR) -> Result<(IR, Expression), Error> {
     Ok((ir, expr))
 }
 
-fn check_peek(ir: IR) -> Result<(IR, Expression), Error> {
+fn check_peek(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  <expr>
 
     let (ir, expr) = get_expr(ir)?;
@@ -155,7 +153,7 @@ fn check_peek(ir: IR) -> Result<(IR, Expression), Error> {
     Ok((ir, expr))
 }
 
-fn get_named(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_named(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  name
     //  <expr>
 
@@ -168,7 +166,7 @@ fn get_named(ir: IR) -> Result<(IR, Expression), Error> {
     Ok((ir, expr))
 }
 
-fn get_match(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_match(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  CHARS
     //  ASDFASDF
     //  BETWEEN
@@ -185,7 +183,7 @@ fn get_match(ir: IR) -> Result<(IR, Expression), Error> {
     Ok((ir, expr))
 }
 
-fn get_match_chars(ir: IR) -> Result<(IR, String), Error> {
+fn get_match_chars(ir: Ir) -> Result<(Ir, String), Error> {
     if Some(Command("CHARS".to_string())) == ir.peek() {
         let (ir, _) = ir.get()?;
         let (ir, c) = ir.get()?;
@@ -195,7 +193,7 @@ fn get_match_chars(ir: IR) -> Result<(IR, String), Error> {
     }
 }
 
-fn get_match_between(ir: IR) -> Result<(IR, Vec<(char, char)>), Error> {
+fn get_match_between(ir: Ir) -> Result<(Ir, Vec<(char, char)>), Error> {
     if Some(Command("BETW".to_string())) == ir.peek() {
         let (ir, _) = ir.get()?;
         let (ir, v) = get_between_rec(ir, vec![])?;
@@ -205,7 +203,7 @@ fn get_match_between(ir: IR) -> Result<(IR, Vec<(char, char)>), Error> {
     }
 }
 
-fn get_between_rec(ir: IR, v: Vec<(char, char)>) -> Result<(IR, Vec<(char, char)>), Error> {
+fn get_between_rec(ir: Ir, v: Vec<(char, char)>) -> Result<(Ir, Vec<(char, char)>), Error> {
     if ir.peek() == Some(Command("EOBETW".to_string())) {
         let (ir, _) = ir.get()?;
         Ok((ir, v))
@@ -214,7 +212,7 @@ fn get_between_rec(ir: IR, v: Vec<(char, char)>) -> Result<(IR, Vec<(char, char)
         let (ir, ch2) = ir.get()?;
         let fc = |s: String| {
             s.chars()
-                .nth(0)
+                .next()
                 .ok_or_else(|| Error(format!("expected char received <{}>", s)))
         };
 
@@ -226,7 +224,7 @@ fn get_between_rec(ir: IR, v: Vec<(char, char)>) -> Result<(IR, Vec<(char, char)
     }
 }
 
-fn get_repeat(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_repeat(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  1
     //  inf
     //  expr
@@ -251,11 +249,11 @@ fn get_repeat(ir: IR) -> Result<(IR, Expression), Error> {
     ))
 }
 
-fn get_mexpr(ir: IR) -> Result<(IR, MultiExpr), Error> {
+fn get_mexpr(ir: Ir) -> Result<(Ir, MultiExpr), Error> {
     get_mexpr_rec(ir, MultiExpr::new(vec![]))
 }
 
-fn get_mexpr_rec(ir: IR, me: MultiExpr) -> Result<(IR, MultiExpr), Error> {
+fn get_mexpr_rec(ir: Ir, me: MultiExpr) -> Result<(Ir, MultiExpr), Error> {
     if ir.peek() == Some(Command("CLOSE_MEXPR".to_string())) {
         let (ir, _) = ir.get()?;
         Ok((ir, me))
@@ -266,7 +264,7 @@ fn get_mexpr_rec(ir: IR, me: MultiExpr) -> Result<(IR, MultiExpr), Error> {
     }
 }
 
-fn get_atom(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_atom(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  LIT
     //  literal
     let (ir, cmd) = ir.get()?;
@@ -279,19 +277,19 @@ fn get_atom(ir: IR) -> Result<(IR, Expression), Error> {
     }
 }
 
-fn get_rulref(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_rulref(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  name
     let (ir, cmd) = ir.get()?;
     Ok((ir, ref_rule!(cmd.0)))
 }
 
-fn get_lit(ir: IR) -> Result<(IR, Expression), Error> {
+fn get_lit(ir: Ir) -> Result<(Ir, Expression), Error> {
     //  literal
     let (ir, cmd) = ir.get()?;
     Ok((ir, lit!(cmd.0)))
 }
 
-fn get_rule(ir: IR) -> Result<(IR, SetOfRules), Error> {
+fn get_rule(ir: Ir) -> Result<(Ir, SetOfRules), Error> {
     //  RULE
     //  name
     //  DESCR

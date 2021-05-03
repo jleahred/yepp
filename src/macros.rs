@@ -21,9 +21,9 @@ macro_rules! lit {
     }};
 }
 
-macro_rules! error {
+macro_rules! expected {
     ($e:expr) => {{
-        $crate::parser::expression::Expression::Simple($crate::parser::atom::Atom::Error(
+        $crate::parser::expression::Expression::Simple($crate::parser::atom::Atom::Expected(
             $e.to_string(),
         ))
     }};
@@ -37,7 +37,7 @@ macro_rules! dot {
 
 macro_rules! eof {
     () => {{
-        $crate::parser::expression::Expression::Simple($crate::parser::atom::Atom::EOF)
+        $crate::parser::expression::Expression::Simple($crate::parser::atom::Atom::Eof)
     }};
 }
 

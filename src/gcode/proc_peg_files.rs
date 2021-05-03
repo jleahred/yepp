@@ -12,7 +12,7 @@ pub(crate) fn run_force(dir: &Path) {
 }
 
 pub(crate) fn _run(dir: &Path, force: bool) {
-    print!("running: {:?}\n", dir);
+    println!("running: {:?}", dir);
     for entry in fs::read_dir(dir).expect("cannot read directory") {
         let entry = entry.expect("cannot read file");
         let path = entry.path();
@@ -30,14 +30,14 @@ pub(crate) fn _run(dir: &Path, force: bool) {
 }
 
 fn get_rust_rules2parse_peg2(txt_peg: &str) -> String {
-    use crate::ir::IR;
+    use crate::ir::Ir;
 
     let irtxt = crate::rules_for_peg::rules()
         .parse(txt_peg)
         .unwrap()
         .replace(None)
         .unwrap();
-    let ir = IR::new(&irtxt.str());
+    let ir = Ir::new(&irtxt.str());
 
     let rules = ir.get_rules().unwrap();
 
@@ -46,15 +46,15 @@ fn get_rust_rules2parse_peg2(txt_peg: &str) -> String {
 
 fn require_generation(origin: &Path, destiny: &Path) -> bool {
     let created_origin = fs::metadata(origin)
-        .expect(&format!("error getting metadata from file {:?}", origin))
+        .unwrap_or_else(|_| panic!("error getting metadata from file {:?}", origin))
         .modified()
-        .expect(&format!("cannot read date from file {:?}", origin));
+        .unwrap_or_else(|_| panic!("cannot read date from file {:?}", origin));
     let meta_dest = fs::metadata(destiny);
 
     if let Ok(md) = meta_dest {
         created_origin
             > md.modified()
-                .expect(&format!("cannot read date from file {:?}", md))
+                .unwrap_or_else(|_| panic!("cannot read date from file {:?}", md))
     } else {
         true
     }
@@ -62,7 +62,8 @@ fn require_generation(origin: &Path, destiny: &Path) -> bool {
 
 fn gen_file(origin: &Path, destiny: &Path) {
     println!("init generate file {:?}", origin);
-    let txt_peg = fs::read_to_string(&origin).expect(&format!("failed to read input {:?}", origin));
+    let txt_peg =
+        fs::read_to_string(&origin).unwrap_or_else(|_| panic!("failed to read input {:?}", origin));
 
     let rust_rules = get_rust_rules2parse_peg2(&txt_peg);
 

@@ -35,32 +35,32 @@ fn main2() -> Result<(), yepp::Error> {
         expr    =   (  term   /  unary_expr  )
                             (
                                 _  add_op   _  term             ->$(term)$(add_op)
-                            /   _  add_op   _                   error("invalid expression after operator")
+                            /   _  add_op   _                   expected("expression after operator")
                             )*
 
         unary_expr  =     _  '-'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
                     /     _  '+'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
-                    /     _  ( '+' / '-' )  _                   error("waitting open parenth or number after unary operator")
+                    /     _  ( '+' / '-' )  _                   expected("open parenth or number after unary operator")
                     .desc  Unary expression  desc.
 
         term    =   factor  (
                                 _  mult_op  _  factor           ->$(factor)$(mult_op)
-                            /   _  mult_op  _                   error("invalid expression after operator")
+                            /   _  mult_op  _                   expected("expression after operator")
                             )*
 
         factor  =   pow     (
                                 _  pow_op   _  parornum          ->$(parornum)$(pow_op)
-                            /   _  pow_op   _                   error("waitting parenthesis or number")
+                            /   _  pow_op   _                   expected("parenthesis or number")
                             )*
 
         pow     =   parornum (
                                 _  pow_op   _  pow              ->$(pow)$(pow_op)
-                            /   _  pow_op   _                   error("invalid expression after operator")
+                            /   _  pow_op   _                   expected("expression after operator")
                             )*
 
         parornum =   '(' _ expr _                                ->$(expr)
                                 (  ')'                          ->$(:none)
-                                /  error("missing closing parenthesis")
+                                /  expected("missing closing parenthesis")
                         )
                 /   number                                      ->PUSH $(number)$(:endl)  
 
@@ -78,7 +78,7 @@ fn main2() -> Result<(), yepp::Error> {
         "#,
     )
     .gen_rules()?
-    .parse("-1+2*3")?
+    .parse("-1+2*3+")?
         //     .parse("2^3^4^5")?
         //     .parse("2-3-4-5")?
         //     .parse("-(-1+2* 3^5 ^(- 2 ) -7)+8")?

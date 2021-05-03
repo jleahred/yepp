@@ -85,7 +85,7 @@ fn mexpr2code(mexpr: &expression::MultiExpr) -> String {
         .0
         .iter()
         .fold(String::new(), |acc, expr| match acc.len() {
-            0 => expr2code(expr).to_string(),
+            0 => expr2code(expr),
             _ => format!("{}, {}", acc, expr2code(expr)),
         })
 }
@@ -100,10 +100,10 @@ fn atom2code(atom: &Atom) -> String {
 
     match atom {
         Atom::Literal(s) => format!(r#"lit!("{}")"#, replace_esc(s.to_string())),
-        Atom::Error(s) => format!(r#"error!("{}")"#, replace_esc(s.to_string())),
+        Atom::Expected(s) => format!(r#"expected!("{}")"#, replace_esc(s.to_string())),
         Atom::Match(mrules) => match_rules2code(mrules),
         Atom::Dot => "dot!()".to_string(),
-        Atom::EOF => "eof!()".to_string(),
+        Atom::Eof => "eof!()".to_string(),
     }
 }
 

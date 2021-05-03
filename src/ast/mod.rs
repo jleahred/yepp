@@ -30,5 +30,5 @@ pub enum Node {
     /// Named nodes
     Transf2(Transf2),
     /// Reached end of file
-    EOF,
+    Eof,
 }

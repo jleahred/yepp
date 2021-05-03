@@ -26,7 +26,7 @@ impl ReplacedNodes {
                 self.by_pos.push(node_replaced.clone());
                 self.by_name.insert(name.clone(), node_replaced);
             }
-            Node::Val(_) | Node::Transf2(_) | Node::EOF => (),
+            Node::Val(_) | Node::Transf2(_) | Node::Eof => (),
         }
         Ok(self)
     }
@@ -58,7 +58,7 @@ fn rec_replace(
     repl: Replaced,
 ) -> Result<Replaced, String> {
     match ast {
-        Node::EOF => Ok(repl),
+        Node::Eof => Ok(repl),
         Node::Val(s) => Ok(repl.iappend(s)),
         Node::Named((_, nodes)) => rec_replace_nodes(nodes, fcallback, repl),
         Node::Transf2(crate::ast::Transf2 { template, nodes }) => {

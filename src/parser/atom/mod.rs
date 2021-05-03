@@ -26,11 +26,11 @@ pub(crate) enum Atom {
     Match(MatchRules),
     /// Indicates an error.
     /// It will propagate an error while processing
-    Error(String),
+    Expected(String),
     /// Any char
     Dot,
     /// End Of File
-    EOF,
+    Eof,
 }
 
 /// contains a char slice and a (char,char) slice
@@ -50,10 +50,10 @@ pub(crate) struct MatchRules(pub(crate) String, pub(crate) Vec<(char, char)>);
 pub(crate) fn parse<'a>(status: Status<'a>, atom: &'a Atom) -> Result<'a> {
     match atom {
         Atom::Literal(literal) => parse_literal(status, &literal),
-        Atom::Error(error) => parse_error(&status, &error),
+        Atom::Expected(error) => parse_expected(&status, &error),
         Atom::Match(ref match_rules) => parse_match(status, &match_rules),
         Atom::Dot => parse_dot(status),
-        Atom::EOF => parse_eof(status),
+        Atom::Eof => parse_eof(status),
     }
 }
 
@@ -93,12 +93,12 @@ macro_rules! ok {
 fn parse_literal<'a>(mut status: Status<'a>, literal: &'a str) -> Result<'a> {
     for ch in literal.chars() {
         status = parse_char(status, ch)
-            .map_err(|st| Error::from_status_normal_simple(&st, &format!("{}", literal)))?;
+            .map_err(|st| Error::from_status_normal_simple(&st, &literal.to_string()))?;
     }
     ok!(status, literal)
 }
 
-fn parse_error<'a>(status: &Status<'a>, error: &'a str) -> Result<'a> {
+fn parse_expected<'a>(status: &Status<'a>, error: &'a str) -> Result<'a> {
     Err(Error::from_status(
         &status,
         &ErrorAlternatives::from_string(&error),

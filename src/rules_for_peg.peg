@@ -17,7 +17,7 @@
     or              =   _  and                          -> AND$(:endl)$(and)CLOSE_MEXPR$(:endl)
                         ( _  '/'  _  or )?              -> $(or)
 
-    and             =   error
+    and             =   expected
                     /   andline_transf2
                     /   just_andline
 
@@ -39,12 +39,12 @@
 
     no_rule_name    =   !( rule_name _   '=' )
 
-    error           =   'error' _  '('  _  literal  _  ')'      -> ERROR$(:endl)$(literal)$(:endl)
+    expected        =   'expected' _  '('  _  literal  _  ')'      -> EXPECTED$(:endl)$(literal)$(:endl)
 
 
     andline         =   andchunk  (
                                         ' '+  ->$(:none)
-                                        ( error / andchunk )
+                                        ( expected / andchunk )
                                   )*
 
     andchunk        =   name   e:rep_or_unary                 -> NAMED$(:endl)$(name)$(:endl)$(e)
@@ -67,7 +67,7 @@
 
     parenth         =   '('  _  expr  _                 -> $(expr)
                                          (  ')'         -> $(:none)
-                                         /  error("unbalanced parethesis: missing ')'")
+                                         /  expected("unbalanced parethesis: missing ')'")
                                          )
 
     atom            =   a:literal             -> ATOM$(:endl)LIT$(:endl)$(a)$(:endl)

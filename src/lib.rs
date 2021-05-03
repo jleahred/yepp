@@ -72,7 +72,7 @@ pub enum Error {
     /// error on replace
     ReplaceErr(String),
     /// error processing IR
-    IRErr(crate::ir::Error),
+    IrErr(crate::ir::Error),
 }
 
 impl<'a> Peg<'a> {
@@ -83,10 +83,10 @@ impl<'a> Peg<'a> {
 
     /// generate rules from peg grammar (fluent API)
     pub fn gen_rules(&self) -> result::Result<crate::parser::expression::SetOfRules, Error> {
-        use crate::ir::IR;
+        use crate::ir::Ir;
 
         let irtxt = crate::rules_for_peg::rules().parse(self.0)?.replace(None)?;
-        let ir = IR::new(&irtxt.str());
+        let ir = Ir::new(&irtxt.str());
 
         Ok(ir.get_rules().unwrap())
     }
@@ -95,12 +95,12 @@ impl<'a> Peg<'a> {
 impl crate::parser::expression::SetOfRules {
     /// parse from a set of rules (fluent API)
     pub fn parse(&self, text: &str) -> Result<ast::Node, Error> {
-        crate::parse(text, self).map_err(|e| Error::ParserErr(e))
+        crate::parse(text, self).map_err(Error::ParserErr)
     }
 
     /// parse with debug info
     pub fn parse_debug(&self, text: &str) -> Result<ast::Node, Error> {
-        crate::parse_debug(text, self).map_err(|e| Error::ParserErr(e))
+        crate::parse_debug(text, self).map_err(Error::ParserErr)
     }
 }
 
@@ -125,7 +125,7 @@ impl ast::Node {
         &self,
         fcallback: Option<&FnCallBack>,
     ) -> Result<crate::ast::replace::Replaced, Error> {
-        ast::replace::replace(&self, fcallback).map_err(|e| Error::ReplaceErr(e))
+        ast::replace::replace(&self, fcallback).map_err(Error::ReplaceErr)
     }
 }
 

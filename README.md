@@ -239,24 +239,25 @@ fn main() -> Result<(), yepp::Error> {
 
 You saw some examples, let see in more detail
 
-| token      | Description                                                           |
-| ---------- | --------------------------------------------------------------------- |
-| `=`        | On left, symbol, on right expresion defining symbol                   |
-| `symbol`   | It's an string without quotes, no spaces, and ascii                   |
-| `.`        | Any char                                                              |
-| `"..."`    | Literal delimited by quotes                                           |
-| `<space>`  | Separate tokens and Rule concatenation (`and` operation)              |
-| `/`        | Or operation                                                          |
-| `(...)`    | A expression composed of sub expresions                               |
-| `?`        | One optional                                                          |
-| `*`        | Repeat 0 or more                                                      |
-| `+`        | Repeat 1 or more                                                      |
-| `!`        | negate expression, continue if not followed without consume           |
-| `&`        | verify it follows..., but not consuming                               |
-| `[...]`    | Match chars. It's a list or ranges (or both)                          |
-| `->`       | after the arrow, we have the transformation rule                      |
-| `:`        | To give a name, in order to use later in transformation               |
-| error(...) | This let's you to define an error message when this rule is satisfied |
+| token             | Description                                                               |
+| ----------------- | ------------------------------------------------------------------------- |
+| `=`               | On left, symbol, on right expresion defining symbol                       |
+| `symbol`          | It's an string without quotes, no spaces, and ascii                       |
+| `.`               | Any char                                                                  |
+| `"..."`           | Literal delimited by quotes                                               |
+| `<space>`         | Separate tokens and Rule concatenation (`and` operation)                  |
+| `/`               | Or operation                                                              |
+| `(...)`           | A expression composed of sub expresions                                   |
+| `?`               | One optional                                                              |
+| `*`               | Repeat 0 or more                                                          |
+| `+`               | Repeat 1 or more                                                          |
+| `!`               | negate expression, continue if not followed without consume               |
+| `&`               | verify it follows..., but not consuming                                   |
+| `[...]`           | Match chars. It's a list or ranges (or both)                              |
+| `->`              | after the arrow, we have the transformation rule                          |
+| `:`               | To give a name, in order to use later in transformation                   |
+| `expected(...)`   | This let's you to define an error message when this rule is satisfied     |
+| `.desc ... desc.` | At end of a rule to give information about it in case of error (optional) |
 
 Below there is the `grammar` witch define the valid `peg` inputs.
 BTW, this `grammar` has been parsed to generate the code to parse itself ;-)
@@ -419,12 +420,12 @@ Recursion match par
             / "(" ")"
 ```
 
-In order to produce custom errors, you have to use `error(...)` constructor
+In order to produce custom errors, you have to use `expected(...)` constructor
 
 In next example, the system will complain with parenthesis error if they are unbalanced
 ```peg
     parenth         =   '('  _  expr  _  (  ')'
-                                         /  error("unbalanced parethesis: missing ')'")
+                                         /  expected("unbalanced parethesis: missing ')'")
                                          )
 ```
 

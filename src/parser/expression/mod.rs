@@ -205,7 +205,7 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
         )
     })?;
     let (st, nodes) =
-        parse_expr(status, &rule_info.expr).or_else(|err| Err(err.with_context(rule_name)))?;
+        parse_expr(status, &rule_info.expr).map_err(|err| err.with_context(rule_name))?;
 
     // let elapsed = start.elapsed();
     // println!(
@@ -342,7 +342,7 @@ fn parse_repeat<'a>(status: Status<'a>, rep_info: &'a RepInfo) -> ResultExpr<'a>
     };
 
     let init_tc: (_, _, Vec<ast::Node>) = (status, 0, vec![]);
-    Ok(tail_call(init_tc, |acc| {
+    tail_call(init_tc, |acc| {
         let try_parse = parse_expr(acc.0.clone(), &rep_info.expression);
         match (try_parse, big_min_bound(acc.1), touch_max_bound(acc.1)) {
             (Err(e), true, _) => {
@@ -364,7 +364,7 @@ fn parse_repeat<'a>(status: Status<'a>, rep_info: &'a RepInfo) -> ResultExpr<'a>
                 TailCall::Return(Ok((status, acc.2.iappend(vnodes))))
             }
         }
-    })?)
+    })
 }
 //  SUPPORT
 //-----------------------------------------------------------------------
