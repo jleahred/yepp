@@ -307,11 +307,13 @@ fn get_rule(ir: IR) -> Result<(IR, SetOfRules), Error> {
 
     let (ir, descr) = ir.get()?;
     let descr = Command(descr.0.trim().to_owned());
-    if descr.0 != "" {
-        dbg!(descr);
-    }
+    let descr = if !descr.0.is_empty() {
+        Some(descr.0)
+    } else {
+        None
+    };
 
     let (ir, expr) = get_expr(ir)?;
 
-    Ok((ir, rules! { &name.0 => expr }))
+    Ok((ir, rules! { &name.0 => RuleInfo{expr, descr} }))
 }

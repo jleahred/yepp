@@ -3,12 +3,12 @@
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::let_and_return))]
 macro_rules! rules {
-    ($($n:expr => $e:expr),*) => {{
-        use $crate::parser::expression;
+    ($($n:expr => $ri:expr),*) => {{
+        use $crate::parser::expression::{self, RuleInfo};
         use std::collections::HashMap;
 
-        let rules = expression::SetOfRules::new(HashMap::<String, expression::Expression>::new());
-        $(let rules = rules.add($n, $e);)*
+        let rules = expression::SetOfRules::new(HashMap::<String, RuleInfo>::new());
+        $(let rules = rules.add($n, $ri);)*
         rules
     }};
 }

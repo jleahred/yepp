@@ -5,24 +5,32 @@ pub(crate) mod proc_peg_files;
 use crate::parser::{
     atom,
     atom::Atom,
-    expression::{self, Expression, MetaExpr, MultiExpr, ReplTemplate},
+    expression::{self, Expression, MetaExpr, MultiExpr, ReplTemplate, RuleInfo},
 };
 use idata::IString;
 
 /// Generate a string with rust code from a ```expression::SetOfRules```
 pub(crate) fn rust_from_rules(rules: &expression::SetOfRules) -> String {
     let add_rule = |crules: String, rule: &str| -> String {
-        let begin = if crules == "" { "  " } else { ", " };
+        let begin = if crules.is_empty() { "  " } else { ", " };
         crules + "\n       " + begin + rule
     };
 
-    rules.0.iter().fold("".to_string(), |acc, (name, expr)| {
-        add_rule(acc, &rule2code(name, expr))
+    rules.0.iter().fold("".to_string(), |acc, (name, ri)| {
+        add_rule(acc, &rule2code(name, ri))
     })
 }
 
-fn rule2code(name: &str, expr: &Expression) -> String {
-    format!(r##"r#"{}"# => {}"##, name, expr2code(expr))
+fn rule2code(name: &str, ri: &RuleInfo) -> String {
+    format!(
+        r##"r#"{}"# => RuleInfo{{ expr:{}, descr:{} }}"##,
+        name,
+        expr2code(&ri.expr),
+        match &ri.descr {
+            Some(d) => format!("Some({})", d),
+            None => "None".to_owned(),
+        }
+    )
 }
 
 fn expr2code(expr: &Expression) -> String {

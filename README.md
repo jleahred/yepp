@@ -37,7 +37,7 @@ Wach examples below
 
 * `build.rs` support to generate code automaticaly
 * Online errors on `and` expresions
-* Test with left recursion
+* Play with left recursion
 
 * don't needed to be multiexpr
     pub(crate)struct Transf2Expr {

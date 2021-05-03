@@ -26,27 +26,33 @@ pub(crate) struct Started(usize);
 
 pub(crate) type ResultExpr<'a> = result::Result<(Status<'a>, Vec<ast::Node>), Error>;
 
+#[derive(Debug, PartialEq)]
+pub(crate) struct RuleInfo {
+    pub(crate) expr: Expression,
+    pub(crate) descr: Option<String>,
+}
+
 /// The set of rules to be parsed
 /// Any rule has a name
 /// A rule can be registered just once
 /// The starting rule is main
 #[derive(Debug, PartialEq)]
-pub struct SetOfRules(pub(crate) HashMap<String, Expression>);
+pub struct SetOfRules(pub(crate) HashMap<String, RuleInfo>);
 
 impl SetOfRules {
-    /// Initialize a set of rules with a hashmap of <String, Expression>
+    /// Initialize a set of rules with a hashmap of <String, RuleInfo>
     /// In general, is better to use the ```rules!``` macro
-    pub(crate) fn new(mrules: HashMap<String, Expression>) -> Self {
+    pub(crate) fn new(mrules: HashMap<String, RuleInfo>) -> Self {
         SetOfRules(mrules)
     }
 
     /// return a set of rules empty
     pub(crate) fn empty() -> Self {
-        SetOfRules::new(HashMap::<String, Expression>::new())
+        SetOfRules::new(HashMap::<String, RuleInfo>::new())
     }
 
-    pub(crate) fn add(mut self, name: &str, expr: Expression) -> Self {
-        self.0.insert(name.to_owned(), expr);
+    pub(crate) fn add(mut self, name: &str, ri: RuleInfo) -> Self {
+        self.0.insert(name.to_owned(), ri);
         self
     }
 
@@ -191,7 +197,7 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
     };
 
     let rules = &status.rules.0;
-    let expression = rules.get(rule_name).ok_or_else(|| {
+    let rule_info = rules.get(rule_name).ok_or_else(|| {
         Error::from_status_simple(
             &status,
             &format!("Missing rule: {}", rule_name),
@@ -199,7 +205,7 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
         )
     })?;
     let (st, nodes) =
-        parse_expr(status, &expression).or_else(|err| Err(err.with_context(rule_name)))?;
+        parse_expr(status, &rule_info.expr).or_else(|err| Err(err.with_context(rule_name)))?;
 
     // let elapsed = start.elapsed();
     // println!(
