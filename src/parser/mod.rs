@@ -177,7 +177,7 @@ mod test;
 //-----------------------------------------------------------------------
 impl Error {
     pub(crate) fn with_context(mut self, context: &str) -> Self {
-        if self.alternatives.context.is_none() {
+        if self.alternatives.context.is_none() && !context.is_empty() {
             self.alternatives.context = Some(context.to_owned());
         }
         self

@@ -205,7 +205,10 @@ fn parse_rule_name<'a>(status: Status<'a>, rule_name: &str) -> Result<'a> {
         )
     })?;
     let (st, nodes) =
-        parse_expr(status, &rule_info.expr).map_err(|err| err.with_context(rule_name))?;
+        parse_expr(status, &rule_info.expr).map_err(|err| match &rule_info.descr {
+            Some(d) => err.with_context(d),
+            None => err.with_context(""),
+        })?;
 
     // let elapsed = start.elapsed();
     // println!(

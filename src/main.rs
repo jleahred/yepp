@@ -34,28 +34,32 @@ fn main2() -> Result<(), yepp::Error> {
 
         expr    =   (  term   /  unary_expr  )
                             (
-                                _  add_op   _  term             ->$(term)$(add_op)
-                            /   _  add_op   _                   expected("expression after operator")
+                                _  add_op   _   ( term
+                                                / expected("number or parenth after operator")
+                                                )                   ->$(term)$(add_op)
                             )*
 
-        unary_expr  =     _  '-'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
-                    /     _  '+'  _  parornum                    ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
-                    /     _  ( '+' / '-' )  _                   expected("open parenth or number after unary operator")
+        unary_expr  =     _  '-'  _  parornum                       ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
+                    /     _  '+'  _  parornum                       ->PUSH 0$(:endl)$(parornum)EXEC SUB$(:endl)
+                    /     _  ( '+' / '-' )  _                       expected("open parenth or number after unary operator")
                     .desc  Unary expression  desc.
 
         term    =   factor  (
-                                _  mult_op  _  factor           ->$(factor)$(mult_op)
-                            /   _  mult_op  _                   expected("expression after operator")
+                                _  mult_op  _   ( factor
+                                                / expected("number or parenth after operator")
+                                                )                   ->$(factor)$(mult_op)
                             )*
 
         factor  =   pow     (
-                                _  pow_op   _  parornum          ->$(parornum)$(pow_op)
-                            /   _  pow_op   _                   expected("parenthesis or number")
+                                _  pow_op   _   ( parornum          
+                                                / expected("parenthesis or number")
+                                                )                   ->$(parornum)$(pow_op)
                             )*
 
         pow     =   parornum (
-                                _  pow_op   _  pow              ->$(pow)$(pow_op)
-                            /   _  pow_op   _                   expected("expression after operator")
+                                _  pow_op   _   ( pow
+                                                / expected("number or parenth after operator")
+                                                )                   ->$(pow)$(pow_op)
                             )*
 
         parornum =   '(' _ expr _                                ->$(expr)
@@ -78,7 +82,7 @@ fn main2() -> Result<(), yepp::Error> {
         "#,
     )
     .gen_rules()?
-    .parse("-1+2*3+")?
+    .parse("+1++2*3")?
         //     .parse("2^3^4^5")?
         //     .parse("2-3-4-5")?
         //     .parse("-(-1+2* 3^5 ^(- 2 ) -7)+8")?
